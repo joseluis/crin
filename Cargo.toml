@@ -1,0 +1,25 @@
+[package]
+name = "crin"
+version = "0.1.0"
+authors = ["José Luis Cruz <joseluis@andamira.net>"]
+edition = "2018"
+description = "Crate Information Utility CLI"
+repository = "https://github.com/joseluis/crin"
+readme = "./README.md"
+keywords = ["crates", "information", "cli", "search", "find" ]
+categories = ["command-line-interface", "command-line-utilities"]
+license = "MIT/Apache-2.0"
+
+[dependencies]
+crates_io_api = "0.4"
+clap = "2.33"
+colored = "1.7"
+chrono = "0.4.6"
+timeago = "0.2"
+byte-unit = "1.1.0"
+num-format = "0.4"
+
+[patch.crates-io]
+crates_io_api = { git = 'https://github.com/joseluis/crates_io_api', rev='bf466f5' } 
+#crates_io_api  = {path="../_collab/crates_io_api"}
+#timeago = {path="../_collab/timeago"}

@@ -1,6 +1,10 @@
 use std::cmp;
 use clap::{Arg, App, AppSettings, SubCommand};
+// TEMPORARY_VENDOR
+//use crates_io_api as cia;
+mod crates_io_api;
 use crates_io_api as cia;
+
 use colored::*;
 use chrono::{DateTime, Local, Utc};
 use num_format::{Locale, ToFormattedString};

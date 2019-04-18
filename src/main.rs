@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 use std::cmp;
 use clap::{Arg, App, AppSettings, SubCommand};
 use crates_io_api as cia;
@@ -5,9 +8,14 @@ use colored::*;
 use chrono::{DateTime, Local, Utc};
 use num_format::{Locale, ToFormattedString};
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-const APPNAME: &'static str = env!("CARGO_PKG_NAME");
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const ORGANIZATION: &'static str = "joseluis";
+const APPNAME: &'static str = env!("CARGO_PKG_NAME");
+const CONFIGNAME: &'static str = "config.toml";
+
+mod configuration;
+use configuration::*;
 
 fn main() {
     let client = cia::SyncClient::new();
@@ -94,6 +102,8 @@ fn main() {
         )
         .get_matches();
 
+
+    config_read();
 
     // PARSE THE ARGUMENTS
 

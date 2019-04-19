@@ -19,6 +19,7 @@ timeago = "0.2"
 byte-unit = "1.1.0"
 num-format = "0.4"
 directories = "1.0"
+toml = "0.4"
 config = {version ="0.9", features = ["toml"] }
 lazy_static = "0.2.8"
 

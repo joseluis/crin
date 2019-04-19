@@ -100,6 +100,110 @@ fn main() {
             )
             */
         )
+
+        .subcommand(SubCommand::with_name("list")
+            .about("Manage your lists of crates")
+            // TODO: show list contents, add crate to list, remove crate from list
+
+            .subcommand(SubCommand::with_name("show")
+                .arg(Arg::with_name("list")
+                     .required(true)
+                     .empty_values(false)
+                )
+                .arg(Arg::with_name("info")
+                     .short("i")
+                     .long("info")
+                     .help("show the information of each crate in the list")
+                     .required(false)
+                     .multiple(true)
+                     .empty_values(true)
+                 )
+            )
+            .subcommand(SubCommand::with_name("new")
+                .arg(Arg::with_name("list")
+                     .required(true)
+                     .empty_values(false)
+                )
+            )
+            .subcommand(SubCommand::with_name("delete")
+                .arg(Arg::with_name("list")
+                     .required(true)
+                     .empty_values(false)
+                )
+            )
+            .subcommand(SubCommand::with_name("copy")
+                .arg(Arg::with_name("list_from")
+                     .help("the list and crate to copy from (list:crate)")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("list_to")
+                     .help("the list where to copy the crate")
+                     .required(true)
+                     .empty_values(false)
+                     .index(2)
+                )
+            )
+            .subcommand(SubCommand::with_name("move")
+                .arg(Arg::with_name("list_from")
+                     .help("the list and crate to move from (list:crate)")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("list_to")
+                     .help("the list where to move the crate")
+                     .required(true)
+                     .empty_values(false)
+                     .index(2)
+                )
+            )
+            .subcommand(SubCommand::with_name("copy-all")
+                .arg(Arg::with_name("list_from")
+                     .help("the list from where all the crates will be copied")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("list_to")
+                     .help("the list where to copy all the crates")
+                     .required(true)
+                     .empty_values(false)
+                     .index(2)
+                )
+            )
+            .subcommand(SubCommand::with_name("move-all")
+                .arg(Arg::with_name("list_from")
+                     .help("the list from where all the crates will be moved")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("list_to")
+                     .help("the list where to move all the crates")
+                     .required(true)
+                     .empty_values(false)
+                     .index(2)
+                )
+            )
+            .subcommand(SubCommand::with_name("clone")
+                .arg(Arg::with_name("list_existing")
+                     .help("the list to clone")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("list_new")
+                     .help("the new cloned list (must not exist)")
+                     .required(true)
+                     .empty_values(false)
+                     .index(2)
+                )
+            )
+
+            //
+        )
         .get_matches();
 
 
@@ -146,6 +250,93 @@ fn main() {
                     _ => unreachable!()
                 }
             },
+
+        ("list", Some(list_matches)) => {
+            match &list_matches.subcommand() {
+                ("show", Some(args)) => {
+                    if let Some(list) = args.value_of("list") {
+                        println!("The list \"{}\" contains {} crates:",
+                            list.bright_green(), Lists::quantity(list));
+
+                        match args.occurrences_of("info") {
+
+                            0 => if let Some(contents) = Lists::show(list, true) {
+                                    println!("{}", contents);
+                                }
+                            // TODO: move this to 2 or more occurences, make a more compact
+                            // presentation for 1 occurrence of info
+                            1 | _ => if let Some(contents) = Lists::show(list, false) {
+                                    //println!("{}", contents);
+                                    for crate_name in contents.split_whitespace() {
+                                        let _ = show_crate(&client, crate_name,
+                                            args.occurrences_of("reverse"));
+                                        println!("");
+                                    }
+                                }
+                        }
+                    }
+                },
+                // TODO;
+                ("delete", Some(args)) => {
+                    // TODO: only delete an empty list
+                    if let Some(list) = args.value_of("list") {
+                        println!("deleting: {}", list);
+                    }
+                },
+                // TODO;
+                ("new", Some(args)) => {
+                    if let Some(list) = args.value_of("list") {
+                        println!("creating: {}", list);
+                    }
+                },
+                // TODO;
+                ("copy", Some(args)) => {
+                    let list_from = args.value_of("list_from").unwrap();
+                    let list_to = args.value_of("list_to").unwrap();
+
+                    if list_from == list_to {
+                        println!("You must copy between different lists");
+                    } else {
+                        // TODO check both lists exist, and crate too
+                        println!("copy: {} to {}", list_from, list_to);
+                    }
+                },
+                // TODO;
+                ("move", Some(args)) => {
+                    let list_from = args.value_of("list_from").unwrap();
+                    let list_to = args.value_of("list_to").unwrap();
+
+                    if list_from == list_to {
+                        println!("You must move between different lists");
+                    } else {
+                        println!("move: {} to {}", list_from, list_to);
+                    }
+                }
+                // TODO;
+                ("move-all", Some(args)) => {
+                    let list_from = args.value_of("list_from").unwrap();
+                    let list_to = args.value_of("list_to").unwrap();
+
+                    if list_from == list_to {
+                        println!("You must move between different lists");
+                    } else {
+                        println!("move all crates from: {} to {}", list_from, list_to);
+                    }
+                }
+                // TODO;
+                ("clone", Some(args)) => {
+                    let list_existing = args.value_of("list_existing").unwrap();
+                    let list_new = args.value_of("list_new").unwrap();
+
+                    // TODO check the list exist and the other doesn't
+                    println!("cloning from {} to {}", list_existing, list_new);
+                },
+
+                ("", None) => { let _ = Lists::show_lists(false); },
+                _ => unreachable!(),
+            }
+        }
+
         _ => println!("{} help", APPNAME),
     }
 }

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### feature: config
+
+- read a configuration file from the proper path depending on the OS.
+- manage lists of crates. Implement the following subcommands:
+  - list: show the lists, with the number of crates it contains
+  - list show <list> : shows the crates contained in a list
+  - list show <list> -i : shows information on the crates
+
 
 ## 0.1.0 - 2019-04-15
 First release. You can:

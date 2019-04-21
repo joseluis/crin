@@ -27,3 +27,4 @@ lazy_static = "0.2.8"
 crates_io_api = { git = 'https://github.com/joseluis/crates_io_api', rev='bf466f5' } 
 #crates_io_api  = {path="../_collab/crates_io_api"}
 #timeago = {path="../_collab/timeago"}
+config = {path="../_collab/config-rs"}

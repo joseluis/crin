@@ -10,9 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - read a configuration file from the proper path depending on the OS.
 - manage lists of crates. Implement the following subcommands:
-  - list: show the lists, with the number of crates it contains
-  - list show <list> : shows the crates contained in a list
-  - list show <list> -i : shows information on the crates
+  - list       # show the lists, with the number of crates it contains
+  - list show  # same as previous
+  - list show <list>    # shows the crates contained in a list
+  - list show <list> -i # shows the information for each crate
+  - list new <list>     # creates a new list
+  - list add <list> <crate> # adds the crate to the list
+- write settings back to the configuration file.
+  - save header, lists.
 
 
 ## 0.1.0 - 2019-04-15

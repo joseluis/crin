@@ -1,5 +1,4 @@
-#[macro_use]
-extern crate lazy_static;
+#[macro_use] extern crate lazy_static;
 
 use std::cmp;
 use clap::{Arg, App, AppSettings, SubCommand};
@@ -20,8 +19,9 @@ use configuration::*;
 fn main() {
     let client = cia::SyncClient::new();
 
-    // DEFINE THE ARGUMENTS
+    Settings::read();
 
+    // DEFINE THE ARGUMENTS
     let argmatch = App::new(APPNAME)
         .version(VERSION)
         .setting(AppSettings::VersionlessSubcommands)
@@ -101,13 +101,14 @@ fn main() {
             */
         )
 
+
         .subcommand(SubCommand::with_name("list")
             .about("Manage your lists of crates")
-            // TODO: show list contents, add crate to list, remove crate from list
 
             .subcommand(SubCommand::with_name("show")
+                .help("shows the crates contained in the list")
                 .arg(Arg::with_name("list")
-                     .required(true)
+                     .required(false)
                      .empty_values(false)
                 )
                 .arg(Arg::with_name("info")
@@ -116,22 +117,48 @@ fn main() {
                      .help("show the information of each crate in the list")
                      .required(false)
                      .multiple(true)
-                     .empty_values(true)
+                     .empty_values(false)
                  )
             )
+            .subcommand(SubCommand::with_name("add")
+                .help("add crates to a list")
+                .arg(Arg::with_name("list")
+                     .help("the list where to add the crate")
+                     .required(true)
+                     .empty_values(false)
+                     .index(1)
+                )
+                .arg(Arg::with_name("crate")
+                     .help("the crate to add to the list")
+                     .required(true)
+                     .empty_values(false)
+                     //.multiple(true) // TODO: allow adding multiple crates
+                     .index(2)
+                )
+            )
             .subcommand(SubCommand::with_name("new")
+                .help("create a new empty list")
                 .arg(Arg::with_name("list")
                      .required(true)
                      .empty_values(false)
                 )
             )
-            .subcommand(SubCommand::with_name("delete")
+            .subcommand(SubCommand::with_name("del")
+                .help("delete a crate from a list, or delete an empty list")
                 .arg(Arg::with_name("list")
+                     .help("The list to delete (or delete the crate from)")
                      .required(true)
                      .empty_values(false)
                 )
+                .arg(Arg::with_name("crate")
+                     .help("the crate to delete from the list")
+                     .required(false)
+                     .empty_values(false)
+                )
             )
+            /*
             .subcommand(SubCommand::with_name("copy")
+                .help("copy a crate from one list to another")
                 .arg(Arg::with_name("list_from")
                      .help("the list and crate to copy from (list:crate)")
                      .required(true)
@@ -146,6 +173,7 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("move")
+                .help("move a crate from one list to another")
                 .arg(Arg::with_name("list_from")
                      .help("the list and crate to move from (list:crate)")
                      .required(true)
@@ -160,6 +188,7 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("copy-all")
+                .help("copy all crates from one list to another")
                 .arg(Arg::with_name("list_from")
                      .help("the list from where all the crates will be copied")
                      .required(true)
@@ -174,6 +203,7 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("move-all")
+                .help("move all crates from one list to another")
                 .arg(Arg::with_name("list_from")
                      .help("the list from where all the crates will be moved")
                      .required(true)
@@ -201,13 +231,11 @@ fn main() {
                      .index(2)
                 )
             )
-
+            */
             //
         )
         .get_matches();
 
-
-    config_read();
 
     // PARSE THE ARGUMENTS
 
@@ -251,45 +279,64 @@ fn main() {
                 }
             },
 
+        // LIST ARGUMENTS
+
         ("list", Some(list_matches)) => {
             match &list_matches.subcommand() {
                 ("show", Some(args)) => {
                     if let Some(list) = args.value_of("list") {
-                        println!("The list \"{}\" contains {} crates:",
-                            list.bright_green(), Lists::quantity(list));
 
-                        match args.occurrences_of("info") {
+                        if Lists::exists(list) {
+                            println!("The list \"{}\" contains {} crates:",
+                                list.bright_green(), Lists::quantity(list));
 
-                            0 => if let Some(contents) = Lists::show(list, true) {
+                            match args.occurrences_of("info") {
+                                0 => if let Some(contents) = Lists::show(list, false) {
                                     println!("{}", contents);
                                 }
-                            // TODO: move this to 2 or more occurences, make a more compact
-                            // presentation for 1 occurrence of info
-                            1 | _ => if let Some(contents) = Lists::show(list, false) {
-                                    //println!("{}", contents);
+                                // TODO: move this to 2 or more occurences, and
+                                // make a more compact presentation for 1 occurrence
+                                1 | _ => if let Some(contents) = Lists::show(list, true) {
                                     for crate_name in contents.split_whitespace() {
                                         let _ = show_crate(&client, crate_name,
                                             args.occurrences_of("reverse"));
                                         println!("");
                                     }
                                 }
+                            }
+                        } else {
+                            println!("List \"{0}\" doesn't exist. You can create it with '{1}'",
+                                list.bright_red(), format!("crin list new {}",
+                                    list.bright_green()).bright_blue());
                         }
+
+                    } else {
+                        Lists::show_lists(false);
                     }
                 },
-                // TODO;
-                ("delete", Some(args)) => {
-                    // TODO: only delete an empty list
-                    if let Some(list) = args.value_of("list") {
-                        println!("deleting: {}", list);
-                    }
-                },
-                // TODO;
                 ("new", Some(args)) => {
                     if let Some(list) = args.value_of("list") {
                         println!("creating: {}", list);
+                        Lists::new(list);
                     }
                 },
-                // TODO;
+                ("add", Some(args)) => {
+                    // TODO: allow adding multiple crates
+                    Lists::add(args.value_of("list").unwrap(), args.value_of("crate").unwrap());
+                },
+                ("del", Some(args)) => {
+                    if let Some(list) = args.value_of("list") {
+                        // if let Some(crat) = args.value_of("crate") {
+                        //     println!("deleting the crate {} from the list {}", crat, list);
+                        // } else {
+                        //     println!("deleting the list {}", list);
+                        // }
+
+                        Lists::del(list, args.value_of("crate"));
+                    }
+                },
+                /*
+                // TODO:
                 ("copy", Some(args)) => {
                     let list_from = args.value_of("list_from").unwrap();
                     let list_to = args.value_of("list_to").unwrap();
@@ -301,7 +348,7 @@ fn main() {
                         println!("copy: {} to {}", list_from, list_to);
                     }
                 },
-                // TODO;
+                // TODO:
                 ("move", Some(args)) => {
                     let list_from = args.value_of("list_from").unwrap();
                     let list_to = args.value_of("list_to").unwrap();
@@ -312,7 +359,7 @@ fn main() {
                         println!("move: {} to {}", list_from, list_to);
                     }
                 }
-                // TODO;
+                // TODO:
                 ("move-all", Some(args)) => {
                     let list_from = args.value_of("list_from").unwrap();
                     let list_to = args.value_of("list_to").unwrap();
@@ -323,7 +370,7 @@ fn main() {
                         println!("move all crates from: {} to {}", list_from, list_to);
                     }
                 }
-                // TODO;
+                // TODO:
                 ("clone", Some(args)) => {
                     let list_existing = args.value_of("list_existing").unwrap();
                     let list_new = args.value_of("list_new").unwrap();
@@ -331,7 +378,7 @@ fn main() {
                     // TODO check the list exist and the other doesn't
                     println!("cloning from {} to {}", list_existing, list_new);
                 },
-
+                */
                 ("", None) => { let _ = Lists::show_lists(false); },
                 _ => unreachable!(),
             }
@@ -771,4 +818,19 @@ fn date_ago(date: &DateTime<Utc>, num_items: usize) -> String {
         .to_string())
 }
 
+/// Return a string of words separated by commas,
+/// optionally surrounding each word with a string.
+fn commify(words: Vec<&str>, surround: &str,
+    _color_word: Option<Color>, _color_comma: Option<Color>) -> String {
+    let mut text = "".to_string();
+    for word in words {
+        text = format!("{t}{c} {s}{w}{s}", t = text,
+            s = surround,
+            // TODO: use the optional colors for words and commas
+            c = ",",
+            w = word
+        );
+    }
+    return text[1..].trim().to_string(); // remove the leading comma
+}
 

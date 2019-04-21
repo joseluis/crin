@@ -174,7 +174,7 @@ fn main() {
                 )
                 .arg(Arg::with_name("crate")
                      .help("the crate to remove")
-                     .required(false)
+                     .required(true)
                      .empty_values(false)
                      //.multiple(true) // TODO: allow multiple
                 )

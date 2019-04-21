@@ -32,7 +32,6 @@ fn main() {
         .version(VERSION)
         .setting(AppSettings::VersionlessSubcommands)
         .setting(AppSettings::UnifiedHelpMessage)
-        .setting(AppSettings::AllowExternalSubcommands)
 
         // global flags
         // TODO: add flag for no colors
@@ -62,8 +61,10 @@ fn main() {
         )
 
         // crate
-        .subcommand(SubCommand::with_name("crate")
-            .about("Get crate info")
+        .subcommand(SubCommand::with_name("show")
+            .about("Show crate info")
+             .visible_aliases(&["crate", "info"])
+
             .arg(Arg::with_name("crate_name")
                 .help("the name of the crate")
                 //.index(1)
@@ -72,7 +73,7 @@ fn main() {
             .arg(Arg::with_name("reverse")
                  .short("r")
                  .long("reverse")
-                 .help("show reverse dependencies\nmultiple occurrences")
+                 .help("show reverse dependencies (multi)")
                  .required(false)
                  .multiple(true)
             )
@@ -114,7 +115,7 @@ fn main() {
             .about("Manage your lists of crates")
 
             .subcommand(SubCommand::with_name("show")
-                .help("shows the crates contained in the list")
+                .about("shows the crates contained in the list")
                 .arg(Arg::with_name("list")
                      .required(false)
                      .empty_values(false)
@@ -129,7 +130,7 @@ fn main() {
                  )
             )
             .subcommand(SubCommand::with_name("add")
-                .help("add a crate to a list")
+                .about("add a crate to a list")
                 .arg(Arg::with_name("list")
                      .help("the list where to add the crate")
                      .required(true)
@@ -145,7 +146,7 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("new")
-                .help("create a new empty list")
+                .about("create a new empty list")
                 .arg(Arg::with_name("list")
                      .required(true)
                      .empty_values(false)
@@ -153,7 +154,9 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("del")
-                .help("delete an empty list")
+                .about("delete an empty list")
+                .visible_alias("delete")
+
                 .arg(Arg::with_name("list")
                      .help("The list to delete (must be empty)")
                      .required(true)
@@ -162,7 +165,9 @@ fn main() {
                 )
             )
             .subcommand(SubCommand::with_name("rem")
-                .help("remove a crate from a list")
+                .about("remove a crate from a list")
+                .visible_alias("remove")
+
                 .arg(Arg::with_name("list")
                      .help("The list containing the crate")
                      .required(true)
@@ -261,7 +266,7 @@ fn main() {
 
     match argmatch.subcommand() {
 
-        ("crate", Some(crate_name)) => {
+        ("show", Some(crate_name)) => {
             let _ = show_crate(&client,
                 crate_name.value_of("crate_name").unwrap(),
                 crate_name.occurrences_of("reverse"));

@@ -11,7 +11,9 @@ A handy CLI for the [crates.io](https://crates.io) API
 - Colorful, condensed & parseable output
 - Show crate information
 - Search for crates
-- Global summary
+- Show crates summary
+- User configuration file (in TOML)
+  - Manage custom lists of crates
 
 ### Planned features
 
@@ -19,24 +21,22 @@ A handy CLI for the [crates.io](https://crates.io) API
   - filter by keyword & category
   - sort alphabetically or by downloads
   - choose the page and results per page
-- configuration file
-  - favourites list & custom lists
-  - customize colors
 - show dependencies
 - show version list
   - download any version
+- customize colors
 
 ## Usage examples
 
-### Crate Information
+### Show Crate Information
 ```sh
-$ crin crate regex-syntax
+$ crin show regex-syntax
 
 # If you want to show the number of reverse dependencies  use `-r` or `--reverse`:
-$ crin crate -r regex-syntax
+$ crin show -r regex-syntax
 
 # If you want the full list of reverse dependencies use `-rr` or `--reverse --reverse`:
-$ crin crate -rr regex-syntax
+$ crin show  -rr regex-syntax
 ```
 
 ### Search
@@ -54,11 +54,26 @@ $ crin summary
 $ crin summary new
 ```
 
+### Lists
+
+```sh
+$ crin list                      # show your existing lists
+$ crin list new devlist          # create a new list named 'devlist'
+$ crin list add devlist reqwest  # add the crate to your list
+$ crin list add devlist clap     # add another crate
+$ crin list show devlist -i      # show information about each crate
+$ crin list rem devlist clap     # remove the crate from your list
+
+$ crin list help                 # for more...
+```
+
+
 ### Help
 ```
 $ crin help
 $ crin help crate
 $ crin help summary new
+$ crin help list
 ```
 
 ## Installation

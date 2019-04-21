@@ -1,6 +1,12 @@
+// #![allow(dead_code)]
+// #![allow(unreachable_code)]
+// #![allow(unused_imports)]
+// #![allow(unused_assignments)]
+// #![allow(unused_variables)]
+// #![allow(unused_mut)]
+
 #[macro_use] extern crate lazy_static;
 
-use std::cmp;
 use clap::{Arg, App, AppSettings, SubCommand};
 use crates_io_api as cia;
 use colored::*;
@@ -26,8 +32,10 @@ fn main() {
         .version(VERSION)
         .setting(AppSettings::VersionlessSubcommands)
         .setting(AppSettings::UnifiedHelpMessage)
+        .setting(AppSettings::AllowExternalSubcommands)
 
         // global flags
+        // TODO: add flag for no colors
         /*
         .arg(Arg::with_name("page")
             .short("p")
@@ -44,7 +52,7 @@ fn main() {
 
         // summary
         .subcommand(SubCommand::with_name("summary")
-            .about("Show a general summary")
+            .about("Show a summary")
             .setting(AppSettings::UnifiedHelpMessage)
 
             // new
@@ -77,7 +85,7 @@ fn main() {
                 .help("the search query")
                 //.index(1)
                 .required(false)
-                .empty_values(true)
+                .empty_values(false)
             )
             /*
             .arg(Arg::with_name("category")
@@ -276,9 +284,7 @@ fn main() {
                 );
             },
 
-        // TODO: add subcomands for more details
         ("summary", Some(summary_matches)) => {
-
                 match summary_matches.subcommand() {
                     ("new", Some(_)) => { let _ = show_summary_new_crates(&client); }
                     ("most_downloaded", Some(_)) => {}
@@ -583,7 +589,7 @@ fn search_crate(client: &cia::SyncClient, query: Option<&str>, page: u64, per_pa
     if res.crates.len() > 0 {
 
         println!("Showing {} results of {} (page {} of {}) \n\n{}",
-            {cmp::min(per_page, res.meta.total)}.to_string().bright_green(),
+            {std::cmp::min(per_page, res.meta.total)}.to_string().bright_green(),
             res.meta.total.to_string().green(),
             page.to_string().bright_blue(),
             (res.meta.total / per_page + (res.meta.total % per_page != 0) as u64)
@@ -846,4 +852,3 @@ fn commify(words: Vec<&str>, surround: &str,
     }
     return text[1..].trim().to_string(); // remove the leading comma
 }
-

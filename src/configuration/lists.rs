@@ -1,5 +1,5 @@
 use crate::configuration::*;
-use toml_edit::{value, Value, Array};
+use toml_edit::{value, Value, Array, Table};
 //use std::collections::HashMap;
 
 /// Contains the methods to manage lists in the config file
@@ -118,6 +118,10 @@ impl Lists {
         } else {
             {
                 let mut settings = SETTINGS.write().unwrap();
+
+                if !settings.as_table().contains_table("lists") {
+                    settings.as_table_mut()["lists"] = toml_edit::Item::Table(<Table>::new());
+                }
                 settings["lists"][list] = value(Array::default());
             }
             Settings::write();

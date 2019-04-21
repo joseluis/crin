@@ -19,12 +19,10 @@ timeago = "0.2"
 byte-unit = "1.1.0"
 num-format = "0.4"
 directories = "1.0"
-toml = "0.4"
-config = {version ="0.9", features = ["toml"] }
 lazy_static = "0.2.8"
+toml_edit = "0.1.3"
 
 [patch.crates-io]
 crates_io_api = { git = 'https://github.com/joseluis/crates_io_api', rev='bf466f5' } 
 #crates_io_api  = {path="../_collab/crates_io_api"}
 #timeago = {path="../_collab/timeago"}
-config = {path="../_collab/config-rs"}

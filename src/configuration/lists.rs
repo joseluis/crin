@@ -1,6 +1,8 @@
 use crate::configuration::*;
-use std::collections::HashMap;
+use toml_edit::{value, Value, Array};
+//use std::collections::HashMap;
 
+/// Contains the methods to manage lists in the config file
 pub struct Lists {}
 
 impl Lists {
@@ -9,38 +11,46 @@ impl Lists {
     pub fn exists(list: &str) -> bool {
         let settings = SETTINGS.read().unwrap();
 
-        if let Ok(lists) = settings.get_table("lists") {
-            lists.contains_key(list)
+        if settings.as_table().contains_table("lists") &&
+            settings["lists"].as_table()
+                .expect("Error: Couldn't parse [lists] as a valid toml table.")
+                .contains_key(list) {
+            true
         } else {
             false
         }
     }
 
-    /// Shows the crates contained in the list
+    /// Shows the crates contained in a list,
+    /// either as plain text, or colored & separated by commas
     pub fn show(list: &str, plain: bool) -> Option<String> {
-        let settings = SETTINGS.read().unwrap();
 
-        if let Ok(lists) = settings.get_table("lists") {
-            if let Some(value) = lists.get(list) {
-                if let Ok(array) = value.to_owned().into_array() {
-                    let mut crates_str = "".to_string();
+        if Self::exists(list) {
+            let settings = SETTINGS.read().unwrap();
 
-                    if array.is_empty() {
-                        return Some("".to_string());
-                    } else {
-                        for value in array {
-                            if let Ok(v) = value.into_str() {
-                                if plain {
-                                    crates_str = format!("{} {}", crates_str, v);
-                                } else {
-                                    crates_str = format!("{}, {}", crates_str, v.green());
-                                }
+            if let Some(crates) = settings["lists"][list].as_array() {
+
+                let mut crates_str = "".to_string();
+
+                if crates.is_empty() {
+                    return Some("".to_string());
+                } else {
+                    for crat in crates.iter() {
+                        if let Some(c) = crat.as_str() {
+                            if plain {
+                                crates_str = format!("{} {}", crates_str, c);
+                            } else {
+                                crates_str = format!("{}, {}", crates_str, c.green());
                             }
+                        } else {
+                            println!("Error: couldn't parse crate name as String: \"{}\"", crat);
                         }
-                        return Some(crates_str[1..].trim().to_string()); // remove leading comma
                     }
+                    return Some(crates_str[1..].trim().to_string()); // remove leading comma
                 }
             }
+        } else {
+            println!("List \"{}\" doesn't exist.", list.red());
         }
         None
     }
@@ -48,45 +58,51 @@ impl Lists {
     /// Returns the number of crates in a list
     pub fn quantity(list: &str) -> usize {
         let settings = SETTINGS.read().unwrap();
-        if let Ok(lists) = settings.get_table("lists") {
-            if let Some(value) = lists.get(list) {
-                if let Ok(array) = value.to_owned().into_array() {
-                    return array.len();
-                }
-            }
+        if let Some(crates) = settings["lists"][list].as_array() {
+            crates.len()
+        } else {
+            // TODO: recreate list as empty?
+            // println!("Error: invalid format. list \"{}\" is not an Array, but {}",
+            //     list.red(), Self::typeof_value(settings["lists"][list].as_value()));
+            // println!("With the contents: {}", settings["lists"][list].as_value().unwrap());
+            0
         }
-        0
     }
 
-    /// Adds one crate to the list
+    /// Adds one crate to a list
     // TODO: allow adding multiple crates
     pub fn add(list: &str, crat: &str) {
         if Self::exists(list) {
 
             let mut crates_vec = vec![""];
+            // get the list of crates
             if let Some(crates) = Self::show(list, true) {
                 crates_vec = crates.split_whitespace().collect();
+
                 if crates_vec.contains(&crat) {
                     println!("Crate \"{}\" is already in list \"{}\"",
                         crat.red(), list.bright_red())
-                } else {
-                    // TODO: allow multiple crates
-                    //println!("{:?}", crat); // DEBUG
 
-                    // TODO: check if the crate is valid (call fn)
-                    crates_vec.push(crat);
+                // } else if ... { // TODO: check if the crate is valid
+                } else {
+                    let mut crates_arr = Array::default();
+                    crates_arr.push(crat);
+                    for c in crates_vec {
+                        crates_arr.push(c);
+                    }
 
                     {
                     let mut settings = SETTINGS.write().unwrap();
-                    settings.set(&format!("lists.{}", list), crates_vec).unwrap();
+                    settings["lists"][list] = value(crates_arr);
                     }
                     println!("Added crate \"{}\" to the list \"{}\"",
                          crat.green(), list.bright_green());
 
                     Settings::write();
                 }
+            } else {
+                println!("The list \"{}\" is empty.", list.red());
             }
-            // println!("{}", Self::show(list, false).unwrap()); // DEBUG
 
         } else {
             println!("List \"{0}\" doesn't exist. You can create it with '{1}'",
@@ -101,134 +117,153 @@ impl Lists {
         } else {
             {
                 let mut settings = SETTINGS.write().unwrap();
-                let empty_list: Vec<String> = vec![];
-                settings.set(&format!("lists.{}", list), empty_list).unwrap();
+                settings["lists"][list] = value(Array::default());
             }
             Settings::write();
         }
     }
 
-    /// Deletes an empty list, or deletes a crate from a list
-    // TODO: allow deleting multiple crates
-    pub fn del(list: &str, crat: Option<&str>) {
+    /// Deletes an empty list
+    // TODO: allow deleting multiple lists
+    pub fn del(list: &str) {
         if Self::exists(list) {
+            let mut changed = false;
             {
                 let mut settings = SETTINGS.write().unwrap();
 
-                //println!("{:?}", settings.cache); // DEBUG
-                //return;
+                if let Some(crates) = settings["lists"][list].as_array() {
 
-                if let Ok(mut lists) = settings.get_table("lists") {
-                    // TODO: delete the crate from the list
-                    if let Some(c) = crat {
-
-                    // delete the list, if empty
-                    } else {
-                        if lists[list].to_owned().into_array().unwrap().is_empty() {
+                    // Only delete the list if it's empty
+                    if crates.is_empty() {
+                        if let Some(mut table) = settings["lists"].as_table_mut() {
                             println!("Deleting the empty list \"{}\".", list.bright_green());
-                            //let _ = lists.remove(list);
-
-                            // https://github.com/mehcode/config-rs/issues/108
-                            // doesn't work :/
-                            //let _ = settings.del("lists");
-                            //let _ = settings.del(&format!("lists.{}", list));
-
-                            // // TODO: reset the existing lists, except this one
-                            // doesn't work either :/
-                            // let new_lists: HashMap<String, Vec<String>> = HashMap::new();
-                            // //let _ = settings.set("lists", true);
-                            // let _a = settings.set("lists.favorites2", "sd");
-                            // println!("\n»» {:?}", _a); // DEBUG
-
-                            // if let Some(all_lists) = Self::get_lists(&settings) { 
-                            //     for (key, value) in all_lists.iter() {
-                            //         println!("{:?} {:?}", key, value);
-                            //         //settings.set(&format!("lists.{}", key), vec!["as", "es"]).unwrap();
-                            //     }
-                            // }
-
-                            // TODO: write the settings back
-                            //settings.set("lists", lists).unwrap(); // TESTING
-                            //settings.set("lists", vec!["pepe = [\"crin\", \"cran\"]"]).unwrap();
-                            //settings.merge(lists).unwrap(); // TESTING
-
-                            println!("\n>>{:?}", settings.get_table("lists")); // DEBUG
-
-
+                            table.remove(list);
+                            changed = true;
                         } else {
-                            println!("The list \"{}\" cannot be deleted because it's not empty.",
-                                list.bright_red());
+                            println!("Error: couldn't delete the list \"{}\".", list.red());
                         }
+                    } else {
+                        println!("The list \"{}\" cannot be deleted because it's not empty.",
+                            list.bright_red());
                     }
+                } else {
+                    println!("Error: invalid format. list \"{}\" is not an Array, but {}",
+                        list.red(), Self::typeof_value(settings["lists"][list].as_value()));
+                    println!("With the contents: {}", settings["lists"][list].as_value().unwrap());
+                    // TODO: will delete if provided with force argument
                 }
+
             }
-            Settings::write(); // TODO: only write if changes happened
+            if changed { Settings::write(); }
         } else {
             println!("List \"{}\" doesn't exist.", list.red());
         }
     }
-    /// Get all the saved lists as a HashMap
-    pub fn get_lists(settings: &Config) -> Option<HashMap<String, Vec<String>>> {
 
-        let mut map = HashMap::new();
+    /// Removes a crate from a list
+    // TODO: allow deleting multiple crates, maybe receiving a clap::Values struct
+    //    https://docs.rs/clap/2.33.0/clap/struct.Values.html
+    pub fn rem(list: &str, crat: &str) {
+        if Self::exists(list) {
+            let mut crates_vec = vec![""];
 
-        if let Ok(lists) = settings.get_table("lists") {
-            if !lists.is_empty() {
-                // TODO generate map
-                map.insert("lista1".to_string(), vec!["crate1".to_string(), "crate".to_string()]);
-                return Some(map);
+            // get the list of crates
+            if let Some(crates) = Self::show(list, true) {
 
-                // let mut lists_str = "".to_string();
-                // for (list, _) in lists {
-                //     lists_str = format!("{}, {} {}",
-                //         lists_str, list.bright_green(),
-                //         format!("({})", Self::quantity(&list)).cyan()
-                //     );
-                // }
-                // println!("Your lists:\n{}", lists_str[1..].trim());
+                crates_vec = crates.split_whitespace().collect();
+
+                if crates_vec.contains(&crat) {
+                    crates_vec.retain(|&x| x != crat);
+
+                    let mut crates_arr = Array::default();
+                    for c in crates_vec {
+                        crates_arr.push(c);
+                    }
+
+                    {
+                    let mut settings = SETTINGS.write().unwrap();
+                    settings["lists"][list] = value(crates_arr);
+                    }
+                    println!("Removed crate \"{}\" from the list \"{}\"",
+                         crat.green(), list.bright_green());
+
+                    Settings::write();
+                } else {
+                    println!("Crate \"{}\" was not in list \"{}\"",
+                        crat.red(), list.bright_red())
+                }
+            } else {
+                println!("The list \"{}\" is empty.", list.red());
             }
+        } else {
+            println!("List \"{}\" doesn't exist.", list.red());
         }
-        None
     }
-
 
     /// Show the saved lists
     pub fn show_lists(recursive: bool) {
         let settings = SETTINGS.read().unwrap();
-        let msg_empty = format!("You have no lists. Create a new one with '{}'",
-            "crin list new <listname>".bright_blue());
 
-        if let Ok(lists) = settings.get_table("lists") {
-            if lists.is_empty() {
-                println!("{}", msg_empty);
-            } else {
+        if let Some(lists) = settings["lists"].as_table() {
+            if lists.len() > 0 {
+
+                let mut lists_str = "".to_string();
+
                 if recursive {
-                    // for (list_name, value) in lists {
-                    //         if let Ok(array) = value.into_array() {
-                    //             println!("{}", list_name);
-                    //             for crate_name in array {
-                    //                 println!("\t{}", crate_name);
-                    //             }
-                    //         }
-                    // }
-                } else {
-                    //let lists_names: Vec<&String> = lists.keys().collect();
-                    //println!("{:?}", lists_names[0]);
-
-                    let mut lists_str = "".to_string();
-                    for (list, _) in lists {
-                        lists_str = format!("{}, {} {}",
-                            lists_str, list.bright_green(),
-                            format!("({})", Self::quantity(&list)).cyan()
+                    // show also the contained crates
+                    for (list_name, value) in lists.iter() {
+                        lists_str = format!("{}\n{} {}: {}",
+                            lists_str, list_name.bright_green(),
+                            format!("({})", Self::quantity(&list_name)).cyan(),
+                            if let Some(crates) = Self::show(list_name, false)
+                                { crates.normal() } else { "???".bright_red() }
                         );
                     }
-                    println!("Your lists:\n{}", lists_str[1..].trim());
+                } else {
+                    // show just the lists with their number of crates
+                    for (list_name, value) in lists.iter() {
+                        lists_str = format!("{}, {} {}",
+                            lists_str, list_name.bright_green(),
+                            format!("({})", Self::quantity(&list_name)).cyan()
+                        );
+                    }
                 }
+                println!("Your lists:\n{}", lists_str[1..].trim());
+            } else {
+                let msg_empty = format!("You have no lists. Create a new one with '{}'",
+                    "crin list new <listname>".bright_blue());
             }
+            
         } else {
-            println!("{}", msg_empty);
+            println!("err");
         }
-
     }
+
+    /// Returns a string identifying the type of a TOML Value
+    fn typeof_value(value: Option<&Value>) -> &str {
+        if let Some(v) = value {
+            if v.is_integer() { return "an Integer"; }
+            if v.is_str() { return "a String"; }
+            if v.is_float() { return "a Float"; }
+            if v.is_date_time() { return "a DateTime"; }
+            if v.is_bool() { return "a Boolean"; }
+            if v.is_array() { return "an Array"; }
+            if v.is_inline_table() { return "an InlineTable"; }
+            /*
+            // ISSUE: doesn't seem to work with match
+            match v {
+                Value::Integer(_) => "an Integer",
+                Value::String(_) => "a String",
+                Value::Float(_) => "a Float",
+                Value::DateTime(_) => "a DateTime",
+                Value::Boolean(_) => "a Boolean",
+                Value::Array(_) => "an Array",
+                Value::InlineTable(_) => "an InlineTable",
+            };
+            */
+        }
+        "<unknown>"
+    }
+
 }
 

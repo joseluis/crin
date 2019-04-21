@@ -117,11 +117,11 @@ fn main() {
                      .help("show the information of each crate in the list")
                      .required(false)
                      .multiple(true)
-                     .empty_values(false)
+                     .empty_values(true)
                  )
             )
             .subcommand(SubCommand::with_name("add")
-                .help("add crates to a list")
+                .help("add a crate to a list")
                 .arg(Arg::with_name("list")
                      .help("the list where to add the crate")
                      .required(true)
@@ -132,7 +132,7 @@ fn main() {
                      .help("the crate to add to the list")
                      .required(true)
                      .empty_values(false)
-                     //.multiple(true) // TODO: allow adding multiple crates
+                     //.multiple(true) // TODO: allow multiple
                      .index(2)
                 )
             )
@@ -141,21 +141,33 @@ fn main() {
                 .arg(Arg::with_name("list")
                      .required(true)
                      .empty_values(false)
+                     //.multiple(true) // TODO: allow multiple
                 )
             )
             .subcommand(SubCommand::with_name("del")
-                .help("delete a crate from a list, or delete an empty list")
+                .help("delete an empty list")
                 .arg(Arg::with_name("list")
-                     .help("The list to delete (or delete the crate from)")
+                     .help("The list to delete (must be empty)")
+                     .required(true)
+                     .empty_values(false)
+                     //.multiple(true) // TODO: allow multiple
+                )
+            )
+            .subcommand(SubCommand::with_name("rem")
+                .help("remove a crate from a list")
+                .arg(Arg::with_name("list")
+                     .help("The list containing the crate")
                      .required(true)
                      .empty_values(false)
                 )
                 .arg(Arg::with_name("crate")
-                     .help("the crate to delete from the list")
+                     .help("the crate to remove")
                      .required(false)
                      .empty_values(false)
+                     //.multiple(true) // TODO: allow multiple
                 )
             )
+
             /*
             .subcommand(SubCommand::with_name("copy")
                 .help("copy a crate from one list to another")
@@ -285,9 +297,8 @@ fn main() {
             match &list_matches.subcommand() {
                 ("show", Some(args)) => {
                     if let Some(list) = args.value_of("list") {
-
                         if Lists::exists(list) {
-                            println!("The list \"{}\" contains {} crates:",
+                            println!("Your list \"{}\" contains {} crates:",
                                 list.bright_green(), Lists::quantity(list));
 
                             match args.occurrences_of("info") {
@@ -304,6 +315,7 @@ fn main() {
                                     }
                                 }
                             }
+
                         } else {
                             println!("List \"{0}\" doesn't exist. You can create it with '{1}'",
                                 list.bright_red(), format!("crin list new {}",
@@ -311,7 +323,11 @@ fn main() {
                         }
 
                     } else {
-                        Lists::show_lists(false);
+                        // if no list is provided, show which lists there are
+                        match args.occurrences_of("info") {
+                            0 => Lists::show_lists(false),
+                            1 | _ => Lists::show_lists(true),
+                        }
                     }
                 },
                 ("new", Some(args)) => {
@@ -320,20 +336,17 @@ fn main() {
                         Lists::new(list);
                     }
                 },
+                ("del", Some(args)) => {
+                    // TODO: allow multiple
+                    if let Some(list) = args.value_of("list") { Lists::del(list); }
+                },
                 ("add", Some(args)) => {
-                    // TODO: allow adding multiple crates
+                    // TODO: allow multiple
                     Lists::add(args.value_of("list").unwrap(), args.value_of("crate").unwrap());
                 },
-                ("del", Some(args)) => {
-                    if let Some(list) = args.value_of("list") {
-                        // if let Some(crat) = args.value_of("crate") {
-                        //     println!("deleting the crate {} from the list {}", crat, list);
-                        // } else {
-                        //     println!("deleting the list {}", list);
-                        // }
-
-                        Lists::del(list, args.value_of("crate"));
-                    }
+                ("rem", Some(args)) => {
+                    // TODO: allow multiple
+                    Lists::rem(args.value_of("list").unwrap(), args.value_of("crate").unwrap());
                 },
                 /*
                 // TODO:
@@ -379,7 +392,7 @@ fn main() {
                     println!("cloning from {} to {}", list_existing, list_new);
                 },
                 */
-                ("", None) => { let _ = Lists::show_lists(false); },
+                ("", None) => { Lists::show_lists(false); }
                 _ => unreachable!(),
             }
         }

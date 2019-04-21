@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.2.0 - 2019-04-21
+Config file & list management update.
+
 - Read a TOML configuration file from the proper path depending on the OS.
 - Manage lists of crates. Implement the following subcommands:
   - `list`          # shows the lists

@@ -74,7 +74,8 @@ impl Lists {
     pub fn add(list: &str, crat: &str) {
         if Self::exists(list) {
 
-            let mut crates_vec = vec![""];
+            let mut crates_vec: Vec<&str>;
+
             // get the list of crates
             if let Some(crates) = Self::show(list, true) {
                 crates_vec = crates.split_whitespace().collect();
@@ -135,7 +136,7 @@ impl Lists {
 
                     // Only delete the list if it's empty
                     if crates.is_empty() {
-                        if let Some(mut table) = settings["lists"].as_table_mut() {
+                        if let Some(table) = settings["lists"].as_table_mut() {
                             println!("Deleting the empty list \"{}\".", list.bright_green());
                             table.remove(list);
                             changed = true;
@@ -165,7 +166,7 @@ impl Lists {
     //    https://docs.rs/clap/2.33.0/clap/struct.Values.html
     pub fn rem(list: &str, crat: &str) {
         if Self::exists(list) {
-            let mut crates_vec = vec![""];
+            let mut crates_vec: Vec<&str>;
 
             // get the list of crates
             if let Some(crates) = Self::show(list, true) {
@@ -211,7 +212,7 @@ impl Lists {
 
                 if recursive {
                     // show also the contained crates
-                    for (list_name, value) in lists.iter() {
+                    for (list_name, _value) in lists.iter() {
                         lists_str = format!("{}\n{} {}: {}",
                             lists_str, list_name.bright_green(),
                             format!("({})", Self::quantity(&list_name)).cyan(),
@@ -221,7 +222,7 @@ impl Lists {
                     }
                 } else {
                     // show just the lists with their number of crates
-                    for (list_name, value) in lists.iter() {
+                    for (list_name, _value) in lists.iter() {
                         lists_str = format!("{}, {} {}",
                             lists_str, list_name.bright_green(),
                             format!("({})", Self::quantity(&list_name)).cyan()
@@ -230,7 +231,7 @@ impl Lists {
                 }
                 println!("Your lists:\n{}", lists_str[1..].trim());
             } else {
-                let msg_empty = format!("You have no lists. Create a new one with '{}'",
+                println!("You have no lists. Create a new one with '{}'",
                     "crin list new <listname>".bright_blue());
             }
             

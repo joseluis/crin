@@ -1,6 +1,5 @@
 use crate::configuration::*;
 use toml_edit::{value, Value, Array, Table};
-//use std::collections::HashMap;
 
 /// Contains the methods to manage lists in the config file
 pub struct Lists {}
@@ -167,7 +166,6 @@ impl Lists {
 
     /// Removes a crate from a list
     // TODO: allow deleting multiple crates, maybe receiving a clap::Values struct
-    //    https://docs.rs/clap/2.33.0/clap/struct.Values.html
     pub fn rem(list: &str, crat: &str) {
         if Self::exists(list) {
             let mut crates_vec: Vec<&str>;
@@ -209,6 +207,9 @@ impl Lists {
     pub fn show_lists(recursive: bool) {
         let settings = SETTINGS.read().unwrap();
 
+        let err_msg = format!("You have no lists. Create a new one with '{}'",
+            "crin list new <listname>".bright_blue());
+
         if let Some(lists) = settings["lists"].as_table() {
             if lists.len() > 0 {
 
@@ -235,12 +236,11 @@ impl Lists {
                 }
                 println!("Your lists:\n{}", lists_str[1..].trim());
             } else {
-                println!("You have no lists. Create a new one with '{}'",
-                    "crin list new <listname>".bright_blue());
+                println!("{}", err_msg);
             }
             
         } else {
-            println!("err");
+            println!("{}", err_msg);
         }
     }
 
@@ -269,6 +269,4 @@ impl Lists {
         }
         "<unknown>"
     }
-
 }
-

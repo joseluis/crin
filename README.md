@@ -33,10 +33,10 @@ A handy CLI for the [crates.io](https://crates.io) API
 $ crin show regex-syntax
 
 # If you want to show the number of reverse dependencies  use `-r` or `--reverse`:
-$ crin show -r regex-syntax
+$ crin show regex-syntax -r
 
 # If you want the full list of reverse dependencies use `-rr` or `--reverse --reverse`:
-$ crin show  -rr regex-syntax
+$ crin show regex-syntax -rr
 ```
 
 ### Search

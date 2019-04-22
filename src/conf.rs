@@ -1,3 +1,5 @@
+use super::{ORGANIZATION, APPNAME, CONFIGNAME};
+
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -8,7 +10,6 @@ use toml_edit::Document;
 
 use colored::*;
 
-use super::{ORGANIZATION, APPNAME, CONFIGNAME};
 
 lazy_static! {
     static ref SETTINGS: RwLock<Document> = RwLock::new(Document::new());
@@ -27,7 +28,7 @@ impl Settings {
         .expect("Unable to retrieve app config directory").config_dir().to_owned()
     }
 
-    /// Reads the configuration from the file and the environment
+    /// Reads the configuration from the user config file
     pub fn read() {
         let mut settings = SETTINGS.write().unwrap();
 

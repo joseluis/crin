@@ -1,4 +1,4 @@
-use crate::configuration::*;
+use crate::conf::*;
 use toml_edit::{value, Value, Array, Table};
 
 /// Contains the methods to manage lists in the config file

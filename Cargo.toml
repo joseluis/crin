@@ -23,5 +23,6 @@ lazy_static = "0.2.8"
 toml_edit = "0.1.3"
 
 [patch.crates-io]
-crates_io_api  = {path="../_collab/crates_io_api"}
-#timeago = {path="../_collab/timeago"}
+# The published version in crates.io is from the `vendor_crates_io_api` branch. Until
+# several needed PRs are accepted in the crates_io_api repo, I'm working with a fork:
+crates_io_api  = {git="https://github.com/joseluis/crates_io_api.git", branch="trunk"}

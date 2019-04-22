@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Big inner code refactoring to increase modularity and maintainability.
+- Add alias `lists` to command `list`
+- Update readme.
+
 ## 0.2.0 - 2019-04-21
 Config file & list management update.
 

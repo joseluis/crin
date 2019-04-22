@@ -7,9 +7,7 @@ use std::path::PathBuf;
 use std::sync::RwLock;
 
 use toml_edit::Document;
-
 use colored::*;
-
 
 lazy_static! {
     static ref SETTINGS: RwLock<Document> = RwLock::new(Document::new());
@@ -17,9 +15,7 @@ lazy_static! {
 
 mod lists; pub use self::lists::Lists;
 
-
 pub struct Settings {}
-
 
 impl Settings {
 
@@ -82,5 +78,4 @@ impl Settings {
             println!("{}", "Error: Couldn't save the configuration.".bright_red());
         }
     }
-
 }

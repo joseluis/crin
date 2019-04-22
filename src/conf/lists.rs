@@ -1,7 +1,7 @@
 use crate::conf::*;
 use toml_edit::{value, Value, Array, Table};
 
-/// Contains the methods to manage lists in the config file
+/// Container of methods to manage lists in the config file
 pub struct Lists {}
 
 impl Lists {

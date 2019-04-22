@@ -11,7 +11,6 @@ pub struct Actuator {
 
 impl Actuator {
 
-    /// Constructor
     pub fn new() -> Actuator {
         Actuator {
             client: SyncClient::new()
@@ -268,8 +267,7 @@ impl Actuator {
 
 
     /// Show crate information
-    pub fn show_crate(&self, crate_name: &str, show_rdeps: u64)
-        -> Result<(), Error> {
+    pub fn show_crate(&self, crate_name: &str, show_rdeps: u64) -> Result<(), Error> {
 
         let res = self.client.get_crate(crate_name)?;
         let c = res.crate_data;
@@ -323,7 +321,8 @@ impl Actuator {
                 }
         }
         // documentation
-        if let Some(ref p) = c.documentation { println!("{}\t{}", "documentation:".blue(), p.bright_blue().underline()); }
+        if let Some(ref p) = c.documentation { println!("{}\t{}",
+            "documentation:".blue(), p.bright_blue().underline()); }
         // license
         if let Some(ref l) = res.versions[0].license { println!("{}\t{}",
             "license:".blue(), l.bright_blue().italic()); }
@@ -356,9 +355,9 @@ impl Actuator {
             }
         }
 
-        // show list of reverse dependencies
+        // Show the list of reverse dependencies
         if show_rdeps > 1 && revdep.meta.total > 0 {
-            println!("{}" ,
+            println!("{}",
                 "# optional crate_name version requires created updated (ago) downloads bytes (size) license"
                 .bright_black());
 
@@ -377,7 +376,8 @@ impl Actuator {
                 if let Some(s) = d.crate_version.crate_size {
                     size_bytes = s.to_string().blue();
                     size = format!("({})",
-                        byte_unit::Byte::from_bytes(s as u128).get_appropriate_unit(true).to_string().replace(" ", "")).blue();
+                        byte_unit::Byte::from_bytes(s as u128).get_appropriate_unit(true)
+                        .to_string().replace(" ", "")).blue();
                 }
 
                 let mut license = "?".to_string().black();
@@ -422,7 +422,6 @@ impl Actuator {
 
             }
         }
-
         Ok(())
     }
 

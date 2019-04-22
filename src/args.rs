@@ -12,14 +12,13 @@ pub struct CliArguments<'a> {
 
 impl<'a> CliArguments<'a> {
 
-    /// Constructor
     pub fn new() -> CliArguments<'a> {
         CliArguments {
             matches: Self::set_args()
         }
     }
 
-    /// Defines the arguments
+    /// Defines the CLI arguments
     fn set_args() -> ArgMatches<'a> {
 
         App::new(APPNAME)
@@ -258,7 +257,7 @@ impl<'a> CliArguments<'a> {
         }
 
 
-    /// Parses the CLI arguments
+    /// Parses the received CLI arguments and triggers the appropriate actions
     pub fn parse(&self) {
 
         let act = Actuator::new();

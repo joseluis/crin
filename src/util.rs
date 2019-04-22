@@ -1,6 +1,7 @@
 use chrono::{DateTime, Local, Utc};
 use colored::*;
 
+
 /// Format a DateTime as either YYYY-MM-DD or with a custom format
 pub fn date_str(date: &DateTime<Utc>, format: &str) -> String {
     if format.is_empty() {
@@ -20,6 +21,7 @@ pub fn date_ago(date: &DateTime<Utc>, num_items: usize) -> String {
             Local::now())
         .to_string())
 }
+
 
 /// Return a string of words separated by commas,
 /// optionally surrounding each word with a string.

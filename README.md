@@ -58,11 +58,11 @@ $ crin summary new
 
 ```sh
 $ crin list                      # show your existing lists
-$ crin list new devlist          # create a new list named 'devlist'
-$ crin list add devlist reqwest  # add the crate to your list
-$ crin list add devlist clap     # add another crate
-$ crin list show devlist -i      # show information about each crate
-$ crin list rem devlist clap     # remove the crate from your list
+$ crin list new mylist          # create a new list named 'devlist'
+$ crin list add mylist reqwest  # add the crate to your list
+$ crin list add mylist clap     # add another crate
+$ crin list show mylist -i      # show information about each crate
+$ crin list rem mylist clap     # remove the crate from your list
 
 $ crin list help                 # for more...
 ```

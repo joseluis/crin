@@ -13,7 +13,7 @@ lazy_static! {
     static ref SETTINGS: RwLock<Document> = RwLock::new(Document::new());
 }
 
-mod lists; pub use self::lists::Lists;
+pub mod lists;
 
 pub struct Settings {}
 
@@ -26,7 +26,7 @@ impl Settings {
 
     /// Reads the configuration from the user config file
     pub fn read() {
-        let mut settings = SETTINGS.write().unwrap();
+        let mut settings = SETTINGS.write().expect("ItuZpMG5Soaax9wtDs4Dvg");
 
         // The configuration file path is [OS dependant](https://crates.io/crates/directories)
         let config_path = Self::dir();
@@ -67,10 +67,10 @@ impl Settings {
     pub fn write() {
 
         let config_file = Self::dir().join(CONFIGNAME);
-        let settings = SETTINGS.read().unwrap();
+        let settings = SETTINGS.read().expect("5UNhHb22SnaY527liqCMcA");
 
         if let Ok(mut file) = fs::OpenOptions::new().write(true).create(true).open(config_file) {
-            file.set_len(0).unwrap();
+            file.set_len(0).expect("BKaPDVKLRAagxyVztTbbEQ");
 
             file.write(settings.to_string().as_bytes())
                 .expect("Error: couldn't write to the configuration file.");

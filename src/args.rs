@@ -3,8 +3,9 @@ use super::{VERSION, APPNAME};
 use clap::{ArgMatches, Arg, App, AppSettings, SubCommand};
 use colored::*;
 
-use crate::conf::Lists;
 use crate::actions::Actuator;
+use crate::conf::lists::{Lists,
+    ROOT, NOT_ROOT, RECURSIVE, NOT_RECURSIVE, PRINT_CRATES, DONT_PRINT_CRATES};
 
 pub struct CliArguments<'a> {
     matches: ArgMatches<'a>
@@ -21,12 +22,12 @@ impl<'a> CliArguments<'a> {
     /// Defines the CLI arguments
     fn set_args() -> ArgMatches<'a> {
 
+        // crin
         App::new(APPNAME)
             .version(VERSION)
             .setting(AppSettings::VersionlessSubcommands)
             .setting(AppSettings::UnifiedHelpMessage)
 
-            // global flags
             // TODO: add flag for no colors
             /*
             .arg(Arg::with_name("page")
@@ -40,29 +41,30 @@ impl<'a> CliArguments<'a> {
             )
             */
 
-            // SUBCOMMANDS
-
-            // summary
+            // crin summary
             .subcommand(SubCommand::with_name("summary")
                 .about("Show a summary")
                 .setting(AppSettings::UnifiedHelpMessage)
 
-                // new
+                // crin summary new
                 .subcommand(SubCommand::with_name("new")
                     .about("Detailed summary of the new crates")
                 )
             )
 
-            // crate
+            // crin show
             .subcommand(SubCommand::with_name("show")
                 .about("Show crate info")
                  .visible_aliases(&["crate", "info"])
 
+                 // crin show <crate>
                 .arg(Arg::with_name("crate_name")
                     .help("the name of the crate")
                     //.index(1)
                     .required(true)
                 )
+
+                // crin show  <crate> [-r… ]
                 .arg(Arg::with_name("reverse")
                      .short("r")
                      .long("reverse")
@@ -72,9 +74,11 @@ impl<'a> CliArguments<'a> {
                 )
             )
 
-            // search
+            // crin search
             .subcommand(SubCommand::with_name("search")
                 .about("Search for crates. Shows 1 page of 100 results")
+
+                // crin search [query]
                 .arg(Arg::with_name("query")
                     .help("the search query")
                     //.index(1)
@@ -82,18 +86,21 @@ impl<'a> CliArguments<'a> {
                     .empty_values(false)
                 )
                 /*
+                // crin search […] [-c [category]]
                 .arg(Arg::with_name("category")
                      .short("c")
                      .help("limit query by category")
                      .required(false)
                      .empty_values(true)
                 )
+                // crin search […] [-k [keyword]]
                 .arg(Arg::with_name("keyword")
                      .short("k")
                      .help("limit query by keyword")
                      .required(false)
                      .empty_values(true)
                 )
+                // crin search […] [-u [user]]
                 .arg(Arg::with_name("user")
                      .short("u")
                      .help("limit query by user_id")
@@ -103,17 +110,26 @@ impl<'a> CliArguments<'a> {
                 */
             )
 
+            // crin conf
+            .subcommand(SubCommand::with_name("conf")
+                .visible_alias("config")
+                .about("manage the configuration")
+            )
 
+            // crin list
             .subcommand(SubCommand::with_name("list")
                 .about("Manage your lists of crates")
                 .visible_alias("lists")
 
+                // crin list show
                 .subcommand(SubCommand::with_name("show")
                     .about("shows the crates contained in the list")
+                    // crin list show [list]
                     .arg(Arg::with_name("list")
                          .required(false)
                          .empty_values(false)
                     )
+                    // crin list show [-i… ]
                     .arg(Arg::with_name("info")
                          .short("i")
                          .long("info")
@@ -123,14 +139,50 @@ impl<'a> CliArguments<'a> {
                          .empty_values(true)
                      )
                 )
+
+                // crin list desc
+                .subcommand(SubCommand::with_name("desc")
+                    .about("add a description to a list")
+                    .visible_alias("description")
+
+                    // crin list add <list>
+                    .arg(Arg::with_name("list")
+                         .help("the list where to add the description")
+                         .required(true)
+                         .empty_values(false)
+                         .index(1)
+                    )
+                    // crin list add <list> <description>
+                    .arg(Arg::with_name("description")
+                         .help("the list description")
+                         .required(true)
+                         .empty_values(false)
+                         .index(2)
+                    )
+                    // crin list add <list> <description> [-f ]
+                    .arg(Arg::with_name("force")
+                         .short("f")
+                         .long("force")
+                         .help("forces replacing the description")
+                         .required(false)
+                         .multiple(false)
+                         .empty_values(true)
+                     )
+                )
+
+
+
+                // crin list add
                 .subcommand(SubCommand::with_name("add")
                     .about("add a crate to a list")
+                    // crin list add <list>
                     .arg(Arg::with_name("list")
                          .help("the list where to add the crate")
                          .required(true)
                          .empty_values(false)
                          .index(1)
                     )
+                    // crin list add <list> <crate>
                     .arg(Arg::with_name("crate")
                          .help("the crate to add to the list")
                          .required(true)
@@ -139,18 +191,24 @@ impl<'a> CliArguments<'a> {
                          .index(2)
                     )
                 )
+
+                // crin list new
                 .subcommand(SubCommand::with_name("new")
+                    .visible_alias("create")
                     .about("create a new empty list")
+                    // crin list new <list>
                     .arg(Arg::with_name("list")
                          .required(true)
                          .empty_values(false)
                          //.multiple(true) // TODO: allow multiple
                     )
                 )
+
+                // crin list del
                 .subcommand(SubCommand::with_name("del")
                     .about("delete an empty list")
                     .visible_alias("delete")
-
+                    // crin list del <list>
                     .arg(Arg::with_name("list")
                          .help("The list to delete (must be empty)")
                          .required(true)
@@ -158,15 +216,18 @@ impl<'a> CliArguments<'a> {
                          //.multiple(true) // TODO: allow multiple
                     )
                 )
+
+                // crin list rem
                 .subcommand(SubCommand::with_name("rem")
                     .about("remove a crate from a list")
                     .visible_alias("remove")
-
+                    // crin list rem <list>
                     .arg(Arg::with_name("list")
                          .help("The list containing the crate")
                          .required(true)
                          .empty_values(false)
                     )
+                    // crin list rem <list> <crate>
                     .arg(Arg::with_name("crate")
                          .help("the crate to remove")
                          .required(true)
@@ -174,8 +235,22 @@ impl<'a> CliArguments<'a> {
                          //.multiple(true) // TODO: allow multiple
                     )
                 )
+                /* TODO:
+                // crin list rem-all
+                .subcommand(SubCommand::with_name("rem-all")
+                    .about("remove all crates from a list")
+                    .visible_alias("remove-all")
+                    // crin list rem-all <list>
+                    .arg(Arg::with_name("list")
+                         .help("The list containing the crate")
+                         .required(true)
+                         .empty_values(false)
+                    )
+                )
+                */
 
                 /*
+                // crin list copy
                 .subcommand(SubCommand::with_name("copy")
                     .help("copy a crate from one list to another")
                     .arg(Arg::with_name("list_from")
@@ -191,6 +266,8 @@ impl<'a> CliArguments<'a> {
                          .index(2)
                     )
                 )
+
+                // crin list move
                 .subcommand(SubCommand::with_name("move")
                     .help("move a crate from one list to another")
                     .arg(Arg::with_name("list_from")
@@ -206,6 +283,8 @@ impl<'a> CliArguments<'a> {
                          .index(2)
                     )
                 )
+
+                // crin list copy-all
                 .subcommand(SubCommand::with_name("copy-all")
                     .help("copy all crates from one list to another")
                     .arg(Arg::with_name("list_from")
@@ -221,6 +300,8 @@ impl<'a> CliArguments<'a> {
                          .index(2)
                     )
                 )
+
+                // crin list move-all
                 .subcommand(SubCommand::with_name("move-all")
                     .help("move all crates from one list to another")
                     .arg(Arg::with_name("list_from")
@@ -236,6 +317,8 @@ impl<'a> CliArguments<'a> {
                          .index(2)
                     )
                 )
+
+                // crin list clone
                 .subcommand(SubCommand::with_name("clone")
                     .arg(Arg::with_name("list_existing")
                          .help("the list to clone")
@@ -251,8 +334,8 @@ impl<'a> CliArguments<'a> {
                     )
                 )
                 */
-                //
             )
+
             .get_matches()
         }
 
@@ -264,53 +347,68 @@ impl<'a> CliArguments<'a> {
 
         match self.matches.subcommand() {
 
+            // crin show
             ("show", Some(crate_name)) => {
                 let _ = act.show_crate(
-                    crate_name.value_of("crate_name").unwrap(),
+                    crate_name.value_of("crate_name").expect("TBd5796SSnuZ9dG_j159sQ"),
                     crate_name.occurrences_of("reverse"));
-                },
+            },
 
+            // crin search
+            //
             // TODO: improve usage of default values
             // TODO: allow passing page & page_num
             // TODO: add filters
             ("search", Some(query)) => {
                 let _ = act.search_crate(query.value_of("query"),
-                    if let Some(p) = self.matches.value_of("page") {
-                        // If the number is not recognized, defaults to page 1
-                        p.parse::<u64>().unwrap_or(1)
-                        } else {1},
-                    if let Some(pp) = self.matches.value_of("per_page") {
-                        // If the number is not recognized, defaults to 100 per page
-                        pp.parse::<u64>().unwrap_or(100)
-                        } else {100}
-                    );
-                },
 
+                if let Some(p) = self.matches.value_of("page") {
+                    // If the number is not recognized, defaults to page 1
+                    p.parse::<u64>().unwrap_or(1)
+                    } else {1},
+                if let Some(pp) = self.matches.value_of("per_page") {
+                    // If the number is not recognized, defaults to 100 per page
+                    pp.parse::<u64>().unwrap_or(100)
+                    } else {100}
+                );
+            },
+
+            // crin summary
+            //
+            // TODO: add alias "sum"
             ("summary", Some(summary_matches)) => {
-                    match summary_matches.subcommand() {
-                        ("new", Some(_)) => { let _ = act.show_summary_new_crates(); }
-                        ("most_downloaded", Some(_)) => {}
-                        ("most_recently_downloaded", Some(_)) => {}
-                        ("recently_updated", Some(_)) => {}
-                        ("popular_keywords", Some(_)) => {}
-                        ("popular_categories", Some(_)) => {}
-                        ("", None) => { let _ = act.show_summary(); },
-                        _ => unreachable!()
-                    }
-                },
+                match summary_matches.subcommand() {
+                    ("new", Some(_)) => { let _ = act.show_summary_new_crates(); }
+                    ("most_downloaded", Some(_)) => {}
+                    ("most_recently_downloaded", Some(_)) => {}
+                    ("recently_updated", Some(_)) => {}
+                    ("popular_keywords", Some(_)) => {}
+                    ("popular_categories", Some(_)) => {}
+                    ("", None) => { let _ = act.show_summary(); },
+                    _ => unreachable!()
+                }
+            },
 
-            // LIST ARGUMENTS
-
+            // crin list
+            //
+            // TODO: add list summary (alias: sum)
             ("list", Some(list_matches)) => {
                 match &list_matches.subcommand() {
+
+                    // crin list show
                     ("show", Some(args)) => {
                         if let Some(list) = args.value_of("list") {
+
                             if Lists::exists(list) {
                                 println!("Your list \"{}\" contains {} crates:",
-                                    list.bright_green(), Lists::quantity(list));
+                                    list.bright_green(),
+                                    Lists::crates_num(
+                                        &Lists::as_table(list).expect("tGbnh-1XRmmYkD6b3V-9Cw"),
+                                            NOT_RECURSIVE, NOT_ROOT)
+                                    );
 
                                 match args.occurrences_of("info") {
-                                    0 => if let Some(contents) = Lists::show(list, false) {
+                                    0 => if let Some(contents) = Lists::crates(list, false) {
                                         println!("{}", contents);
                                     }
                                     // TODO: move this to 2 or more occurences, and
@@ -333,34 +431,63 @@ impl<'a> CliArguments<'a> {
                         } else {
                             // if no list is provided, show which lists there are
                             match args.occurrences_of("info") {
-                                0 => Lists::show_lists(false),
-                                1 | _ => Lists::show_lists(true),
+                                0 => {
+                                    println!("You have {} lists containing {} crates:\n", 
+                                        Lists::children_num(&Lists::as_table("").expect("c55xuxvtSo-cqkny-yD2Ew"),
+                                            RECURSIVE),
+                                        Lists::crates_num(&Lists::as_table("").expect("uuXMmCTpQsmWngZnNdiupA"),
+                                            RECURSIVE, ROOT),
+                                        );
+                                    Lists::print("", NOT_RECURSIVE, PRINT_CRATES);
+                                    //Lists::print("", NOT_RECURSIVE, DONT_PRINT_CRATES);
+                                }
+                                1 | _ => {
+                                    println!("You have {} lists containing {} crates:\n", 
+                                        Lists::children_num(&Lists::as_table("").expect("7SDTLcxgS1Wy7X0dXsJKLA"),
+                                            RECURSIVE),
+                                        Lists::crates_num(&Lists::as_table("").expect("VJGW-VluQmmD20X0yrIw9w"),
+                                            RECURSIVE, ROOT),
+                                        );
+                                    //Lists::print("", RECURSIVE, PRINT_CRATES);
+                                    Lists::print("", RECURSIVE, DONT_PRINT_CRATES);
+                                }
                             }
                         }
                     },
+
+                    // crin list new
                     ("new", Some(args)) => {
                         if let Some(list) = args.value_of("list") {
                             println!("creating: {}", list);
-                            Lists::new(list);
+                            Lists::new(list, false);
                         }
                     },
+
+                    // crin list del
                     ("del", Some(args)) => {
                         // TODO: allow multiple
                         if let Some(list) = args.value_of("list") { Lists::del(list); }
                     },
+
+                    // crin list add
                     ("add", Some(args)) => {
                         // TODO: allow multiple
-                        Lists::add(args.value_of("list").unwrap(), args.value_of("crate").unwrap());
+                        Lists::add(args.value_of("list").expect("CBn1qxp1TMeMIYMMv7bj8w"),
+                            args.value_of("crate").expect("1Jc8xPhiQyCYrFQz3LY92Q"));
                     },
+
+                    // crin list rem
                     ("rem", Some(args)) => {
                         // TODO: allow multiple
-                        Lists::rem(args.value_of("list").unwrap(), args.value_of("crate").unwrap());
+                        Lists::rem(args.value_of("list").expect("kk4kT7stQDmSMxo1ibgTZg"),
+                        args.value_of("crate").expect("yAS9OSIOQ3y0Bckx8SHULQ"));
                     },
+
                     /*
                     // TODO:
                     ("copy", Some(args)) => {
-                        let list_from = args.value_of("list_from").unwrap();
-                        let list_to = args.value_of("list_to").unwrap();
+                        let list_from = args.value_of("list_from").expect("hdact_gDTRSTEXsbRym02w");
+                        let list_to = args.value_of("list_to").expect("bWRYdAMzRtWWblEXPZTpqA");
 
                         if list_from == list_to {
                             println!("You must copy between different lists");
@@ -371,8 +498,8 @@ impl<'a> CliArguments<'a> {
                     },
                     // TODO:
                     ("move", Some(args)) => {
-                        let list_from = args.value_of("list_from").unwrap();
-                        let list_to = args.value_of("list_to").unwrap();
+                        let list_from = args.value_of("list_from").expect("zlbaECPBQOi7i9cP3eu4ow");
+                        let list_to = args.value_of("list_to").expect("iaKAL_TdQPWMXAvIeEs9kg");
 
                         if list_from == list_to {
                             println!("You must move between different lists");
@@ -382,8 +509,8 @@ impl<'a> CliArguments<'a> {
                     }
                     // TODO:
                     ("move-all", Some(args)) => {
-                        let list_from = args.value_of("list_from").unwrap();
-                        let list_to = args.value_of("list_to").unwrap();
+                        let list_from = args.value_of("list_from").expect("VGTFhKr4TDefuRhbQ_gWNQ");
+                        let list_to = args.value_of("list_to").expect("XFkXkajTRB6_80ZiKYHj5g");
 
                         if list_from == list_to {
                             println!("You must move between different lists");
@@ -393,22 +520,33 @@ impl<'a> CliArguments<'a> {
                     }
                     // TODO:
                     ("clone", Some(args)) => {
-                        let list_existing = args.value_of("list_existing").unwrap();
-                        let list_new = args.value_of("list_new").unwrap();
+                        let list_existing = args.value_of("list_existing").expect("S5DK1QvMQ8WSKK6AaZ2J6g");
+                        let list_new = args.value_of("list_new").expect("S5DK1QvMQ8WSKK6AaZ2J6g");
 
                         // TODO check the list exist and the other doesn't
                         println!("cloning from {} to {}", list_existing, list_new);
                     },
                     */
-                    ("", None) => { Lists::show_lists(false); }
+
+                    // crin list
+                    ("", None) => {
+                        println!("You have {} lists containing {} crates:\n", 
+                            Lists::children_num(&Lists::as_table("").expect("BiQz5dZPTPOJ59ZUfLqwIQ"), RECURSIVE),
+                            Lists::crates_num(&Lists::as_table("").expect("f23pdUbuQS61a2uQOHUCmw"), RECURSIVE, ROOT),
+                            );
+                        Lists::print("", NOT_RECURSIVE, PRINT_CRATES);
+                        //Lists::print("", NOT_RECURSIVE, DONT_PRINT_CRATES);
+                    }
+
                     _ => unreachable!(),
                 }
             }
 
+            // crin
             _ => println!("{} help", APPNAME),
 
         }
 
-    } // read()
+    }
 
 }

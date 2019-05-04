@@ -74,7 +74,8 @@ impl Actuator {
                     date_str(&c.created_at, "").purple(),
                     date_str(&c.updated_at, "").bright_purple(),
                     date_ago(&c.updated_at, 1).bright_purple(),
-                    format!("{}", c.description.as_ref().unwrap().trim().replace('\n', ""))
+                    format!("{}", c.description.as_ref().expect("jANfUZDdQw6n8YmwGt-jmQ")
+                        .trim().replace('\n', ""))
                 );
             }
         }
@@ -92,7 +93,8 @@ impl Actuator {
                     date_str(&c.created_at, "").purple(),
                     date_str(&c.updated_at, "").bright_purple(),
                     date_ago(&c.updated_at, 1).bright_purple(),
-                    format!("{}", c.description.as_ref().unwrap().trim().replace('\n', ""))
+                    format!("{}", c.description.as_ref().expect("h43Edp6GSDeWtZ0e98soLw")
+                        .trim().replace('\n', ""))
                 );
             }
         }
@@ -110,7 +112,8 @@ impl Actuator {
                     date_str(&c.created_at, "").purple(),
                     date_str(&c.updated_at, "").bright_purple(),
                     date_ago(&c.updated_at, 1).bright_purple(),
-                    format!("{}", c.description.as_ref().unwrap().trim().replace('\n', ""))
+                    format!("{}", c.description.as_ref().expect("AxzszILhTkiuwWd_EYOOCA")
+                        .trim().replace('\n', ""))
                 );
             }
         }
@@ -128,7 +131,8 @@ impl Actuator {
                     date_str(&c.created_at, "").purple(),
                     date_str(&c.updated_at, "").bright_purple(),
                     date_ago(&c.updated_at, 1).bright_purple(),
-                    format!("{}", c.description.as_ref().unwrap().trim().replace('\n', ""))
+                    format!("{}", c.description.as_ref().expect("DRbC5pXORMmQap0IqlxMXA")
+                        .trim().replace('\n', ""))
                 );
             }
         }
@@ -348,7 +352,7 @@ impl Actuator {
         // reverse dependencies
         let mut revdep = ReverseDependencies {dependencies: Vec::new(), meta: Meta {total:0}};
         if show_rdeps > 0 {
-            revdep = self.client.crate_reverse_dependencies(crate_name).unwrap();
+            revdep = self.client.crate_reverse_dependencies(crate_name).expect("8sv1iRM5Suu4vUCYUSmDcw");
             if revdep.meta.total > 0 {
                 println!("{}\t{}", "reverse deps:".blue(),
                     revdep.meta.total.to_formatted_string(&Locale::en).bright_green());
@@ -397,7 +401,7 @@ impl Actuator {
                 let updated = date_str(&d.crate_version.updated_at, "");
                 //let updated = d.crate_version.updated_at.with_timezone(&Local);
                 let updated_ago = Local::now().
-                    signed_duration_since(d.crate_version.updated_at).to_std().unwrap();
+                    signed_duration_since(d.crate_version.updated_at).to_std().expect("RaYDssjgQfCAOi2I67GfKA");
                 let updated_ago_str = format!("({})",
                     timeago::format_5chars(updated_ago).to_string());
                 // let updated_ago_str = format!("({})", timeago::Formatter::new().num_items(1).abbreviate().ago("").convert(updated_ago).to_string());

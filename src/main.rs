@@ -1,9 +1,9 @@
-// #![allow(dead_code)]
-// #![allow(unreachable_code)]
-// #![allow(unused_imports)]
-// #![allow(unused_assignments)]
-// #![allow(unused_variables)]
-// #![allow(unused_mut)]
+#![allow(dead_code)]
+#![allow(unreachable_code)]
+#![allow(unused_imports)]
+#![allow(unused_assignments)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
 
 #[macro_use] extern crate lazy_static;
 

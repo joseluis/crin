@@ -1,0 +1,41 @@
+
+[lists]
+crates = ["asd"]
+
+[lists.empty]
+
+[lists.personal]
+crates = [{c="coaster"}, {c="catapult"}, {c="crin"}]
+
+[lists.personal.ana]
+crates = [{c="ana1"}, {c="ana2"}]
+
+[lists.personal.ana.old]
+crates = [{c="ana_old1"}, {c="ana_old2"}]
+
+[lists.personal.joseluis]
+crates = [{c="jl1"}]
+
+[lists.empty2]
+crates = []
+
+[lists.with-notes]
+crates = [ {c="crin", v="0.2.0", note="This is my crate"} ]
+
+[lists.old-format]
+note = "this list has old format for crates. I will try to support a crate being a string or an inline table with fields."
+# format can't be mixed, arrays must have the same type
+crates = ["str1", "str2"]
+crates2 = ["str1", "str2"] # test recreating the format
+
+[lists.sorting]
+sort = "alpha"
+note = "test sorting, crate formats)"
+crates = [ {c="rust_decimal"},
+	{c="flat_tree"},
+	{c="snafu", note="macro", tags=""}, {c="catapult"}, {c="reqwest", v="0.8", tags="something"} ]
+
+[lists.logging]
+crates = ["simple-logging", "flexi_logger", "log"]
+
+[lists.empty3]

@@ -16,6 +16,7 @@ mod args;
 mod conf;
 mod actions;
 mod util;
+mod consts;
 
 fn main() {
     conf::Settings::read();

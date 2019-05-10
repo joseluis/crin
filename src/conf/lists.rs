@@ -1,60 +1,12 @@
-use std::fmt;
-
-use crate::conf::*;
 use toml_edit::{value, Value, Array, Table};
-use crate::util::commify;
-
-/// Represents a crate with its associated data
-#[derive(Debug)]
-pub struct Crate {
-    name: String,
-    note: String,
-    // version: String,
-    // tags: Vec<String>
-}
-
-/// Represents a list of crates
-#[derive(Debug)]
-pub struct CrateList(Vec<Crate>);
-
-impl CrateList {
-    pub fn new(crates: Vec<Crate>) -> CrateList {
-        CrateList(crates)
-    }
-}
-
-impl fmt::Display for Crate {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       // TODO: add suffix "*" if it has a note
-        write!(f, "{}", self.name
-        )
-    }
-}
-
-impl fmt::Display for CrateList {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[")?;
-        let mut first = true;
-        for item in &self.0 {
-            if !first {
-                write!(f, ", {}", item)?;
-            } else {
-                write!(f, "{}", item)?;
-            }
-            first = false;
-        }
-        write!(f, "]")?;
-        Ok(())
-    }
-}
 
 
-pub const ROOT     : bool = true;
-pub const NOT_ROOT : bool = false;
-pub const RECURSIVE     : bool = true;
-pub const NOT_RECURSIVE : bool = false;
-pub const PRINT_CRATES      : bool = true;
-pub const DONT_PRINT_CRATES : bool = false;
+mod crates;
+use crates::{Crate, CrateList};
+
+use crate::consts::*;
+use crate::conf::*;
+//use crate::util::commify;
 
 
 /// Container of methods to manage lists in the config file
@@ -308,8 +260,9 @@ impl Lists {
                 text = format!("{}{}", text, rtext);
 
                 if print_crates && crates_num > 0 {
-                    let crates = Self::crates(table, NOT_RECURSIVE);
-                    text = format!("{}: {}", text, crates).green().to_string();
+                    if let Some(crates) = Self::crates(table, NOT_RECURSIVE) {
+                        text = format!("{}: {}", text, crates).green().to_string();
+                    }
                 }
                 println!("{}", text);
 
@@ -389,16 +342,32 @@ impl Lists {
     ///
     /// Optionally recursive.
     ///
-    // TODO: make it work
-    // TODO: implement recursivity
-    pub fn crates(list: &Table, recursive: bool) -> CrateList {
-        let mut crates_list = CrateList::new(vec![]);
+    // TODO: copy "note" field.
+    // TODO: implement recursivity.
+    pub fn crates(list: &Table, _recursive: bool) -> Option<CrateList> {
+        let mut crates_list = CrateList::new();
 
         if Self::has_crates(list) {
-            crates_list
+            if let Some(clist) = list["crates"].as_array() {
+                for c in clist.iter() {
 
+                    // crates = [ {c="crate1"}, {c="crate2", note="note field"} ]
+                    if let Some(ctable) = c.as_inline_table() {
+                        if let Some(name) = ctable.get("c") {
+                            crates_list.push(Crate::new(name.as_str().expect("YhlK8mcmTjGcdblMG55cMQ"), "no_notes"));
+                        }
+                    } else {
+
+                        // crates = ["crate-1", "crate-2"]
+                        if let Some(cstring) = c.as_str() {
+                            crates_list.push(Crate::new(c.as_str().expect("6r3_oNCeQ06F4_PBRaG63A"), "no_notes"));
+                        }
+                    }
+                }
+                return Some(crates_list);
+            }
         }
-        crates_list
+        None
     }
 
 

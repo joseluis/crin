@@ -3,9 +3,9 @@ use super::{VERSION, APPNAME};
 use clap::{ArgMatches, Arg, App, AppSettings, SubCommand};
 use colored::*;
 
+use crate::consts::*;
 use crate::actions::Actuator;
-use crate::conf::lists::{Lists,
-    ROOT, NOT_ROOT, RECURSIVE, NOT_RECURSIVE, PRINT_CRATES, DONT_PRINT_CRATES};
+use crate::conf::lists::Lists;
 
 pub struct CliArguments<'a> {
     matches: ArgMatches<'a>
@@ -400,15 +400,18 @@ impl<'a> CliArguments<'a> {
                         if let Some(list) = args.value_of("list") {
 
                             if Lists::exists(list) {
+
                                 println!("Your list \"{}\" contains {} crates:",
                                     list.bright_green(),
                                     Lists::crates_num(
                                         &Lists::as_table(list).expect("tGbnh-1XRmmYkD6b3V-9Cw"),
-                                            NOT_RECURSIVE, NOT_ROOT)
+                                        NOT_RECURSIVE,
+                                        NOT_ROOT)
                                     );
 
                                 match args.occurrences_of("info") {
-                                    0 => if let Some(contents) = Lists::crates(list, false) {
+                                    0 => if let Some(contents) = Lists::crates(
+                                        &Lists::as_table(list).expect("r3kmLc5ATq2rAKmkApuanA"), NOT_ROOT) {
                                         println!("{}", contents);
                                     }
                                     // TODO: move this to 2 or more occurences, and
@@ -439,7 +442,6 @@ impl<'a> CliArguments<'a> {
                                             RECURSIVE, ROOT),
                                         );
                                     Lists::print("", NOT_RECURSIVE, PRINT_CRATES);
-                                    //Lists::print("", NOT_RECURSIVE, DONT_PRINT_CRATES);
                                 }
                                 1 | _ => {
                                     println!("You have {} lists containing {} crates:\n", 
@@ -448,8 +450,7 @@ impl<'a> CliArguments<'a> {
                                         Lists::crates_num(&Lists::as_table("").expect("VJGW-VluQmmD20X0yrIw9w"),
                                             RECURSIVE, ROOT),
                                         );
-                                    //Lists::print("", RECURSIVE, PRINT_CRATES);
-                                    Lists::print("", RECURSIVE, DONT_PRINT_CRATES);
+                                    Lists::print("", RECURSIVE, PRINT_CRATES);
                                 }
                             }
                         }
@@ -535,7 +536,6 @@ impl<'a> CliArguments<'a> {
                             Lists::crates_num(&Lists::as_table("").expect("f23pdUbuQS61a2uQOHUCmw"), RECURSIVE, ROOT),
                             );
                         Lists::print("", NOT_RECURSIVE, PRINT_CRATES);
-                        //Lists::print("", NOT_RECURSIVE, DONT_PRINT_CRATES);
                     }
 
                     _ => unreachable!(),
